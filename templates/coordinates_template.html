@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Coordinates View</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+</head>
+<body>
+    <h1>Coordinates Data</h1>
+    <div id="map" style="width: 100%; height: 600px;"></div>
+
+    <script>
+        var coordinates = {{ azs_coordinates_data|safe }};
+        var map = L.map('map').setView([coordinates[0]['y'], coordinates[0]['x']], 13);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+        }).addTo(map);
+
+        var markers = [];
+
+
+        for (var i = 0; i < coordinates.length; i++) {
+            var x = parseFloat(coordinates[i]['x']);
+            var y = parseFloat(coordinates[i]['y']);
+            {#var marker = L.marker([coordinates[i]['y'], coordinates[i]['x']]);#}
+            var marker = L.marker([y, x]);
+            marker._id = coordinates[i]['id'];
+            marker.options.customInfo = {
+                road_code: coordinates[i]['road_code'],
+            };
+
+            var popupContent = "AZS ID: " + marker._id + "<br>On road code: " + marker.options.customInfo.road_code;
+            marker.bindPopup(popupContent);
+
+            markers.push(marker);
+
+        }
+
+        var roadCoordinatesData = {{ road_coordinates_data|safe }};
+        var roadData = {{ road_data|safe }};
+        var roadLines = [];
+        var azs_for_road = [];
+
+
+        for (var i = 0; i < roadCoordinatesData.length; i++) {
+            var coords = roadCoordinatesData[i];
+            var latLngs = [];
+
+            for (var j = 0; j < coords.length; j++) {
+                 x = parseFloat(coords[j]['x']);
+                 y = parseFloat(coords[j]['y']);
+                 latLngs.push([y, x]);
+                {#latLngs.push([coords[j]['y'], coords[j]['x']]);#}
+            }
+
+            var roadLine = L.polyline(latLngs, { color: 'blue' }).addTo(map);
+
+            roadLine._id = roadData[i]['id'];
+            roadLine.options.customInfo = {
+                road_code: roadData[i]['road_code'],
+                road_length: roadData[i]['road_length'],
+            };
+
+
+
+            roadLine.on('mouseover', function (e) {
+                this.setStyle({ color: 'red' });
+                var customInfo = this.options.customInfo;
+                var popupContent = "Road Code: " + customInfo.road_code + "<br> Road Length: " + customInfo.road_length;
+                this.bindPopup(popupContent).openPopup();
+
+            });
+
+            roadLine.on('mouseout', function (e) {
+                this.setStyle({ color: 'blue' });
+                this.closePopup()
+            });
+
+            roadLine.on('click', function (e) {
+                var self = this;
+                var local_road_code = self.options.customInfo.road_code;
+                markers.forEach(function(marker) {
+                    marker.removeFrom(map);
+                });
+                markers.forEach(function(marker) {
+                    if (marker.options.customInfo.road_code === local_road_code){
+                        marker.addTo(map);
+                    }
+                });
+
+            });
+        }
+    </script>
+</body>
+</html>

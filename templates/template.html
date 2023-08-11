@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Отображение координат</title>
+    <script src="https://unpkg.com/fabric@5.3.0/dist/fabric.min.js"></script>
+</head>
+<body>
+    <canvas id="coordinateCanvas" width="800" height="600"></canvas>
+    <script>
+        // Пример данных о координатах (замените этими данными свои)
+        var coordinatesData = [
+            [43.8198579971354, 43.5979421994245],
+            [43.8312345678901, 43.6123456789012],
+            // ... добавьте остальные координаты
+        ];
+
+        var canvas = new fabric.Canvas('coordinateCanvas');
+
+        coordinatesData.forEach(function(coord) {
+            var circle = new fabric.Circle({
+                left: coord[0],
+                top: coord[1],
+                radius: 5,
+                fill: 'red'
+            });
+
+            canvas.add(circle);
+        });
+    </script>
+</body>
+</html>
